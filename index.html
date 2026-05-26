@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlantPal </title>
+<link rel="stylesheet" href="plantpal.css">
+</head>
+<body>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-row">
+        <div class="logo-icon"></div>
+        <div class="logo-text">Plant<span>Pal</span></div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-label">garden</div>
+      <div class="nav-item active" onclick="showPage('dashboard')">
+        <span class="nav-icon"></span> Dashboard
+        <span class="nav-badge" id="urgentBadge">0</span>
+      </div>
+      <div class="nav-item" onclick="showPage('myplants')">
+        <span class="nav-icon"></span> My Plants
+      </div>
+      <div class="nav-label">algorithms</div>
+      <div class="nav-item" onclick="showPage('heap')">
+        <span class="nav-icon"></span> Heap Visualizer
+      </div>
+      <div class="nav-item" onclick="showPage('graph')">
+        <span class="nav-icon"></span> Companion Graph
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-stats">
+        <div class="sidebar-stat">
+          <div class="sidebar-stat-num" id="sidebarTotal">0</div>
+          <div class="sidebar-stat-label">plants</div>
+        </div>
+        <div class="sidebar-stat">
+          <div class="sidebar-stat-num" id="sidebarDue" style="color:#ffd54f">0</div>
+          <div class="sidebar-stat-label">due today</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="topbarTitle">Good morning, garden friend </div>
+      <div class="topbar-right">
+        <button class="btn btn-ghost btn-sm" onclick="openModal()">+ add plant</button>
+        <button class="btn btn-primary btn-sm" onclick="showPage('heap')">view heap</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- DASHBOARD PAGE -->
+      <div class="page active" id="page-dashboard">
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-num" id="statTotal" style="color:var(--sage)">0</div>
+            <div class="stat-label">total plants</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num" id="statUrgent" style="color:var(--urgent)">0</div>
+            <div class="stat-label">need care now</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num" id="statWeek" style="color:var(--warn)">0</div>
+            <div class="stat-label">due this week</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num" id="statHealthy" style="color:var(--ok)">0</div>
+            <div class="stat-label">all good</div>
+          </div>
+        </div>
+
+        <div class="section-header">
+          <div class="section-title">care queue</div>
+        </div>
+        <div class="section-sub">sorted by urgency using a min-heap, most urgent always on top</div>
+        <div class="card" id="queueCard">
+          <div class="card-header">
+            <div class="card-header-left">
+              <span>🌡</span>
+              <div>
+                <div class="card-title">next up for care</div>
+                <div class="card-subtitle">priority queue in action</div>
+              </div>
+            </div>
+            <span class="algo-tag">min-heap</span>
+          </div>
+          <div id="queueList"></div>
+        </div>
+      </div>
+
+      <!-- MY PLANTS PAGE -->
+      <div class="page" id="page-myplants">
+        <div class="section-header">
+          <div class="section-title">my plants</div>
+          <button class="btn btn-primary btn-sm" onclick="openModal()">+ add plant</button>
+        </div>
+        <div class="section-sub">your entire collection</div>
+        <div class="plant-grid" id="plantGrid"></div>
+      </div>
+
+      <!-- HEAP PAGE -->
+      <div class="page" id="page-heap">
+        <div class="section-header">
+          <div class="section-title">heap visualizer</div>
+        </div>
+        <div class="section-sub">the plants arranged as a min-heap tree, the root is always the most urgent</div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-left">
+              <div>
+                <div class="card-title">min-heap tree</div>
+                <div class="card-subtitle">each node's days-until-care is less than its children</div>
+              </div>
+            </div>
+            <span class="algo-tag">min-heap · O(log n)</span>
+          </div>
+          <div class="heap-viz-wrap" id="heapVizWrap">
+            <div class="empty-state"><div class="empty-state-icon">🌱</div><p>add some plants to see the heap!</p></div>
+          </div>
+          <div class="heap-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#66bb6a"></div> root (most urgent)</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#ffd54f"></div> level 1</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#ce93d8"></div> level 2</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#90caf9"></div> level 3</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-left"><div><div class="card-title">heap array representation</div><div class="card-subtitle">how it's stored in memory</div></div></div>
+          </div>
+          <div style="padding:1.25rem;overflow-x:auto">
+            <div id="heapArrayViz" style="display:flex;gap:0.5rem;flex-wrap:wrap"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GRAPH PAGE -->
+      <div class="page" id="page-graph">
+        <div class="section-header">
+          <div class="section-title">companion graph</div>
+        </div>
+        <div class="section-sub">which plants thrive together, explored with BFS traversal</div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-left">
+              <div>
+                <div class="card-title">companion planting network</div>
+                <div class="card-subtitle">nodes = plants · edges = compatibility</div>
+              </div>
+            </div>
+            <span class="algo-tag">graph · BFS</span>
+          </div>
+          <div class="graph-wrap">
+            <div class="graph-canvas-wrap">
+              <canvas id="graphCanvas"></canvas>
+            </div>
+            <div class="graph-controls">
+              <label>run BFS from:</label>
+              <select id="bfsStart"></select>
+              <button class="btn btn-primary btn-sm" onclick="runBFS()">traverse</button>
+              <button class="btn btn-ghost btn-sm" onclick="resetBFS()">reset</button>
+            </div>
+            <div class="bfs-result" id="bfsResult"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-left"><div><div class="card-title">adjacency list</div><div class="card-subtitle">graph stored as adjacency list in memory</div></div></div>
+          </div>
+          <div style="padding:1.25rem;font-family:monospace;font-size:0.82rem;color:var(--text)" id="adjList"></div>
+        </div>
+      </div>
+
+      <!-- DOCS PAGE -->
+      <div class="page" id="page-docs" style="display:none!important">
+        <div class="section-title" style="margin-bottom:0.25rem">documentation</div>
+        <div class="section-sub" style="margin-bottom:1.25rem">how PlantPal works under the hood</div>
+
+        <div class="doc-section">
+          <h3>🌱 what is PlantPal?</h3>
+          <p>PlantPal is a smart plant care tracker that helps you know exactly which plant needs attention today. Add your plants with their watering frequency, and PlantPal will always show you the most urgent one first — no more forgotten cacti.</p>
+          <p>Under the hood, PlantPal uses two classic data structures: a <strong>min-heap</strong> for scheduling and a <strong>graph</strong> for companion planting recommendations.</p>
+        </div>
+
+        <div class="doc-section">
+          <h3> data structure 1 — min-heap</h3>
+          <p>A <strong>min-heap</strong> is a complete binary tree where each node's value is smaller than its children. In PlantPal, each node is a plant, and its value is the number of days until it needs care. The plant with the fewest days remaining is always at the root — instantly accessible.</p>
+          <p>When you mark a plant as watered, it gets removed from the heap and re-inserted with its next care date. The heap self-organizes in <code>O(log n)</code> time.</p>
+          <table class="complexity-table">
+            <tr><th>operation</th><th>complexity</th><th>description</th></tr>
+            <tr><td>insert</td><td>O(log n)</td><td>add a plant, bubble up to correct position</td></tr>
+            <tr><td>extract-min</td><td>O(log n)</td><td>remove most urgent plant, heapify down</td></tr>
+            <tr><td>peek</td><td>O(1)</td><td>see most urgent plant without removing</td></tr>
+            <tr><td>build heap</td><td>O(n)</td><td>build from existing array of plants</td></tr>
+          </table>
+        </div>
+
+        <div class="doc-section">
+          <h3>🕸 data structure 2 — graph with BFS</h3>
+          <p>The companion planting network is an <strong>undirected graph</strong> stored as an <strong>adjacency list</strong>. Each plant is a node. An edge between two plants means they are compatible companions — they grow well together.</p>
+          <p><strong>Breadth-First Search (BFS)</strong> is used to traverse the graph from any starting plant. BFS visits all plants one connection away first, then two connections away, etc. — revealing the full network of compatible companions in order of closeness.</p>
+          <table class="complexity-table">
+            <tr><th>operation</th><th>complexity</th><th>description</th></tr>
+            <tr><td>add edge</td><td>O(1)</td><td>add compatibility link between two plants</td></tr>
+            <tr><td>BFS traversal</td><td>O(V + E)</td><td>visit all reachable companions</td></tr>
+            <tr><td>adjacency lookup</td><td>O(degree)</td><td>find all companions of a plant</td></tr>
+          </table>
+        </div>
+
+        <div class="doc-section">
+          <h3> how to run</h3>
+          <p>PlantPal is a single HTML file with no dependencies. Open <code>plantpal.html</code> in any modern browser. No server, no installation needed.</p>
+          <p>To add a plant: click <strong>+ add plant</strong> in the top right. Fill in the name, type, emoji, and watering frequency. The plant will be inserted into the min-heap and appear in the care queue immediately.</p>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- ADD PLANT MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">add a new plant 🌱</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">plant name</label>
+        <input class="form-input" id="inputName" placeholder="e.g. Monstera Mochi" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">species / type</label>
+        <input class="form-input" id="inputType" placeholder="e.g. Monstera deliciosa" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">location</label>
+        <input class="form-input" id="inputLocation" placeholder="e.g. living room" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">water every (days)</label>
+        <input class="form-input" id="inputFrequency" type="number" min="1" max="60" value="7" />
+      </div>
+      <div class="form-group full">
+        <label class="form-label">pick an emoji</label>
+        <div class="emoji-picker" id="emojiPicker"></div>
+      </div>
+      <div class="form-group full" id="companionGroup" style="display:none">
+        <label class="form-label">compatible with (optional)</label>
+        <div id="companionCheckboxes" style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.25rem"></div>
+        <span style="font-size:0.72rem;color:var(--muted);margin-top:4px">plants with similar watering are auto-connected too</span>
+      </div>
+    </div>
+    <div class="form-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">cancel</button>
+      <button class="btn btn-primary" onclick="addPlant()">add to garden 🌿</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+//  DATA STRUCTURES
+
+// --- MIN-HEAP ---
+class MinHeap {
+  constructor() { this.heap = [] }
+
+  _key(node) { return node.daysUntilCare }
+  _swap(i, j) { [this.heap[i], this.heap[j]] = [this.heap[j], this.heap[i]] }
+  _parent(i) { return Math.floor((i - 1) / 2) }
+  _left(i)   { return 2 * i + 1 }
+  _right(i)  { return 2 * i + 2 }
+
+  insert(plant) {
+    this.heap.push(plant)
+    this._bubbleUp(this.heap.length - 1)
+  }
+
+  _bubbleUp(i) {
+    while (i > 0) {
+      const p = this._parent(i)
+      if (this._key(this.heap[p]) > this._key(this.heap[i])) {
+        this._swap(i, p)
+        i = p
+      } else break
+    }
+  }
+
+  extractMin() {
+    if (this.heap.length === 0) return null
+    if (this.heap.length === 1) return this.heap.pop()
+    const min = this.heap[0]
+    this.heap[0] = this.heap.pop()
+    this._heapifyDown(0)
+    return min
+  }
+
+  _heapifyDown(i) {
+    const n = this.heap.length
+    while (true) {
+      let smallest = i
+      const l = this._left(i), r = this._right(i)
+      if (l < n && this._key(this.heap[l]) < this._key(this.heap[smallest])) smallest = l
+      if (r < n && this._key(this.heap[r]) < this._key(this.heap[smallest])) smallest = r
+      if (smallest !== i) { this._swap(i, smallest); i = smallest } else break
+    }
+  }
+
+  peek() { return this.heap[0] || null }
+  size() { return this.heap.length }
+  toArray() { return [...this.heap] }
+
+  remove(id) {
+    const idx = this.heap.findIndex(p => p.id === id)
+    if (idx === -1) return
+    this.heap[idx] = this.heap.pop()
+    if (idx < this.heap.length) {
+      this._bubbleUp(idx)
+      this._heapifyDown(idx)
+    }
+  }
+
+  rebuildFromArray(arr) {
+    this.heap = [...arr]
+    for (let i = Math.floor(this.heap.length / 2) - 1; i >= 0; i--)
+      this._heapifyDown(i)
+  }
+}
+
+// --- GRAPH ---
+class Graph {
+  constructor() { this.adj = new Map() }
+
+  addNode(id) { if (!this.adj.has(id)) this.adj.set(id, []) }
+
+  addEdge(a, b) {
+    this.addNode(a); this.addNode(b)
+    if (!this.adj.get(a).includes(b)) this.adj.get(a).push(b)
+    if (!this.adj.get(b).includes(a)) this.adj.get(b).push(a)
+  }
+
+  removeNode(id) {
+    this.adj.delete(id)
+    this.adj.forEach((neighbors, key) => {
+      this.adj.set(key, neighbors.filter(n => n !== id))
+    })
+  }
+
+  bfs(startId) {
+    if (!this.adj.has(startId)) return []
+    const visited = new Set([startId])
+    const queue = [startId]
+    const order = []
+    while (queue.length) {
+      const node = queue.shift()
+      order.push(node)
+      for (const neighbor of (this.adj.get(node) || [])) {
+        if (!visited.has(neighbor)) {
+          visited.add(neighbor)
+          queue.push(neighbor)
+        }
+      }
+    }
+    return order
+  }
+
+  neighbors(id) { return this.adj.get(id) || [] }
+  nodes() { return [...this.adj.keys()] }
+}
+
+//  APP STATE
+const heap = new MinHeap()
+const graph = new Graph()
+let plants = []
+let nextId = 1
+let selectedEmoji = '🌿'
+
+// Compatibility rules [a, b] = they're friends
+const COMPAT_RULES = [
+  ['🌿','🌴'],['🌿','🌸'],['🌺','🌸'],
+  ['🌵','🌾'],['🍃','🌿'],['🌻','🌺'],['🌸','🍃'],
+  ['🌿','🌻'],['🌾','🌸'],['🌼','🌸'],
+  ['🌼','🌺'],['🌼','🌻'],['🪴','🌿'],['🪴','🍃'],
+  ['🌱','🌿'],['🌱','🍃'],['🌱','🌾'],['🎍','🌴'],
+  ['🎍','🌿'],['🍃','🌱']
+]
+
+function autoConnectByFrequency(newPlant) {
+  plants.forEach(p => {
+    if (p.id !== newPlant.id && Math.abs(p.frequency - newPlant.frequency) <= 3) {
+      graph.addEdge(newPlant.id, p.id)
+    }
+  })
+}
+
+const EMOJIS = ['🌿','🌵','🌸','🌺','🌴','🌾','🍃','🌻','🪴','🌱','🎍','🌼']
+
+const PRESET_PLANTS = [
+  {name:'Monstera Mochi',  type:'Monstera deliciosa',    loc:'living room', freq:7,  emoji:'🌿'},
+  {name:'Cactus Lil',      type:'Cereus repandus',        loc:'windowsill',  freq:14, emoji:'🌵'},
+  {name:'Orchid Ophelia',  type:'Phalaenopsis',            loc:'bedroom',     freq:5,  emoji:'🌸'},
+  {name:'Fern Fernanda',   type:'Nephrolepis exaltata',   loc:'bathroom',    freq:3,  emoji:'🍃'},
+  {name:'Sunny',           type:'Helianthus annuus',       loc:'balcony',     freq:2,  emoji:'🌻'},
+]
+
+//  PLANT MANAGEMENT
+function computeDays(lastWatered, freq) {
+  const now = Date.now()
+  const next = lastWatered + freq * 86400000
+  return Math.max(0, Math.round((next - now) / 86400000))
+}
+
+function addPlantObject(data) {
+  const plant = {
+    id: nextId++,
+    name: data.name,
+    type: data.type,
+    location: data.location,
+    frequency: data.freq,
+    emoji: data.emoji,
+    lastWatered: data.lastWatered || Date.now() - (data.freq * 86400000 * Math.random()),
+    get daysUntilCare() {
+      return computeDays(this.lastWatered, this.frequency)
+    }
+  }
+  plants.push(plant)
+  heap.insert(plant)
+  graph.addNode(plant.id)
+  // auto-add edges based on emoji compatibility
+    COMPAT_RULES.forEach(([a, b]) => {
+    if (plant.emoji === a || plant.emoji === b) {
+      plants.filter(p => p.id !== plant.id && (p.emoji === a || p.emoji === b))
+             .forEach(other => graph.addEdge(plant.id, other.id))
+    }
+  })
+  autoConnectByFrequency(plant)
+  if (data.companions) {
+    data.companions.forEach(id => graph.addEdge(plant.id, id))
+  }
+  return plant
+}
+
+function waterPlant(id) {
+  const plant = plants.find(p => p.id === id)
+  if (!plant) return
+  heap.remove(id)
+  plant.lastWatered = Date.now()
+  heap.insert(plant)
+  showToast(`💧 ${plant.name} watered!`)
+  renderAll()
+  savePlants()
+}
+
+function deletePlant(id) {
+  heap.remove(id)
+  graph.removeNode(id)
+  plants = plants.filter(p => p.id !== id)
+  showToast('🗑 plant removed')
+  renderAll()
+  savePlants()
+}
+
+//  RENDER FUNCTIONS
+function renderAll() {
+  renderStats()
+  renderQueue()
+  renderPlantGrid()
+  renderHeap()
+  renderGraph()
+  renderBFSSelect()
+  renderAdjList()
+  updateSidebar()
+}
+
+function renderStats() {
+  const sorted = heap.toArray()
+  const urgent = sorted.filter(p => p.daysUntilCare === 0).length
+  const week = sorted.filter(p => p.daysUntilCare <= 7).length
+  const healthy = sorted.filter(p => p.daysUntilCare > 7).length
+  document.getElementById('statTotal').textContent = plants.length
+  document.getElementById('statUrgent').textContent = urgent
+  document.getElementById('statWeek').textContent = week
+  document.getElementById('statHealthy').textContent = healthy
+}
+
+function renderQueue() {
+  const list = document.getElementById('queueList')
+  const sorted = heap.toArray().sort((a,b) => a.daysUntilCare - b.daysUntilCare)
+  if (!sorted.length) {
+    list.innerHTML = '<div class="empty-state" style="padding:2rem"><div class="empty-state-icon">🌱</div><p>no plants yet — add some!</p></div>'
+    return
+  }
+  list.innerHTML = sorted.map(p => {
+    const d = p.daysUntilCare
+    const badge = d === 0 ? `<span class="care-badge badge-urgent">water now</span>` :
+                  d <= 3  ? `<span class="care-badge badge-soon">water soon</span>` :
+                            `<span class="care-badge badge-ok">all good</span>`
+    const chip = d === 0 ? `<span class="days-chip urgent">today!</span>` :
+                 `<span class="days-chip">in ${d} day${d===1?'':'s'}</span>`
+    const bg = d===0?'#fdecea':d<=3?'#fff8e1':'#e8f5e9'
+    return `<div class="queue-item">
+      <div class="plant-avatar" style="background:${bg}">${p.emoji}</div>
+      <div class="plant-info">
+        <div class="plant-name">${p.name}</div>
+        <div class="plant-meta">${p.type} · ${p.location}</div>
+      </div>
+      ${badge}${chip}
+      <div class="action-btns">
+        <button class="btn btn-ghost btn-sm" onclick="waterPlant(${p.id})">💧</button>
+        <button class="btn btn-danger btn-sm" onclick="deletePlant(${p.id})">✕</button>
+      </div>
+    </div>`
+  }).join('')
+}
+
+function renderPlantGrid() {
+  const grid = document.getElementById('plantGrid')
+  if (!plants.length) {
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;padding:3rem"><div class="empty-state-icon">🪴</div><h3>your garden is empty</h3><p>Add your first plant to get started!</p></div>'
+    return
+  }
+  grid.innerHTML = plants.map(p => {
+    const d = p.daysUntilCare
+    const col = d===0?'var(--urgent)':d<=3?'var(--warn)':'var(--ok)'
+    return `<div class="plant-card">
+      <div class="plant-card-top"><div class="plant-card-emoji">${p.emoji}</div></div>
+      <div class="plant-card-body">
+        <div class="plant-card-name">${p.name}</div>
+        <div class="plant-card-type">${p.type}</div>
+      </div>
+      <div class="plant-card-footer">
+        <div class="plant-card-next" style="color:${col}"><strong>${d===0?'today!':d+' days'}</strong></div>
+        <button class="btn btn-ghost btn-sm" onclick="waterPlant(${p.id})">💧 water</button>
+      </div>
+    </div>`
+  }).join('')
+}
+
+function renderHeap() {
+  const wrap = document.getElementById('heapVizWrap')
+  const arr = heap.toArray()
+  if (!arr.length) {
+    wrap.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🌱</div><p>add some plants to see the heap!</p></div>'
+    document.getElementById('heapArrayViz').innerHTML = ''
+    return
+  }
+
+  const levelClasses = ['root','level1','level2','level3']
+  const levels = []
+  let i = 0, level = 0
+  while (i < arr.length) {
+    const count = Math.pow(2, level)
+    levels.push(arr.slice(i, i + count))
+    i += count; level++
+  }
+
+  let html = '<div class="heap-tree">'
+  levels.forEach((lvl, li) => {
+    html += `<div class="heap-level" style="margin-bottom:${li<levels.length-1?'0':'0'}">`
+    lvl.forEach(p => {
+      const cls = levelClasses[Math.min(li, levelClasses.length-1)]
+      html += `<div class="heap-node ${cls}">
+        <span class="heap-node-emoji">${p.emoji}</span>
+        <span>${p.name.split(' ')[0]}</span>
+        <span class="heap-node-days">${p.daysUntilCare}d</span>
+      </div>`
+    })
+    html += '</div>'
+    if (li < levels.length - 1) {
+      html += '<div style="display:flex;justify-content:center;gap:' + (80 * Math.pow(2, levels.length-li-2)) + 'px;margin:4px 0">'
+      lvl.forEach(() => html += '<div style="width:1px;height:18px;background:var(--sage-light)"></div>')
+      html += '</div>'
+    }
+  })
+  html += '</div>'
+  wrap.innerHTML = html
+
+  // array viz
+  const arrayWrap = document.getElementById('heapArrayViz')
+  arrayWrap.innerHTML = arr.map((p,i) => `
+    <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+      <div style="background:var(--sage-pale);border:1.5px solid var(--sage-light);border-radius:8px;padding:0.4rem 0.6rem;text-align:center;min-width:64px">
+        <div style="font-size:1.1rem">${p.emoji}</div>
+        <div style="font-size:0.68rem;font-weight:700;color:var(--text)">${p.name.split(' ')[0]}</div>
+        <div style="font-size:0.65rem;color:var(--muted)">${p.daysUntilCare}d</div>
+      </div>
+      <div style="font-size:0.65rem;color:var(--light-muted);font-weight:700">[${i}]</div>
+    </div>`).join('')
+}
+
+// --- GRAPH CANVAS ---
+let graphNodes = [], graphEdges = [], bfsHighlight = []
+
+function renderGraph() {
+  const canvas = document.getElementById('graphCanvas')
+  const wrap = canvas.parentElement
+  canvas.width = wrap.clientWidth || 600
+  if (canvas.width === 0) canvas.width = 600
+  canvas.height = 320
+  const ctx = canvas.getContext('2d')
+  ctx.clearRect(0,0,canvas.width,canvas.height)
+
+  const nodes = plants.map((p,i) => {
+    const angle = (2*Math.PI*i/plants.length) - Math.PI/2
+    const r = Math.min(canvas.width,canvas.height)*0.34
+    return {
+      id: p.id, emoji: p.emoji, name: p.name.split(' ')[0],
+      x: canvas.width/2 + r*Math.cos(angle),
+      y: canvas.height/2 + r*Math.sin(angle)
+    }
+  })
+  graphNodes = nodes
+
+  const edges = []
+  graph.adj.forEach((neighbors, from) => {
+    neighbors.forEach(to => {
+      if (from < to) edges.push([from, to])
+    })
+  })
+  graphEdges = edges
+
+  // draw edges
+  edges.forEach(([a,b]) => {
+    const na = nodes.find(n=>n.id===a), nb = nodes.find(n=>n.id===b)
+    if (!na||!nb) return
+    const highlighted = bfsHighlight.includes(a) && bfsHighlight.includes(b)
+    ctx.beginPath()
+    ctx.moveTo(na.x,na.y); ctx.lineTo(nb.x,nb.y)
+    ctx.strokeStyle = highlighted ? '#7a9e7e' : '#c8ddc9'
+    ctx.lineWidth = highlighted ? 2.5 : 1.5
+    ctx.stroke()
+  })
+
+  // draw nodes
+  nodes.forEach(n => {
+    const highlighted = bfsHighlight.includes(n.id)
+    const bfsIdx = bfsHighlight.indexOf(n.id)
+    ctx.beginPath()
+    ctx.arc(n.x,n.y,24,0,2*Math.PI)
+    ctx.fillStyle = highlighted ? '#e8f5e9' : 'white'
+    ctx.fill()
+    ctx.strokeStyle = highlighted ? '#66bb6a' : '#c8ddc9'
+    ctx.lineWidth = highlighted ? 2.5 : 1.5
+    ctx.stroke()
+    ctx.font='18px serif'; ctx.textAlign='center'; ctx.textBaseline='middle'
+    ctx.fillText(n.emoji,n.x,n.y-2)
+    ctx.font='600 10px Nunito,sans-serif'; ctx.fillStyle=highlighted?'#2e7d32':'#8a7b74'
+    ctx.fillText(n.name,n.x,n.y+16)
+    if (bfsIdx>=0) {
+      ctx.beginPath(); ctx.arc(n.x+16,n.y-16,9,0,2*Math.PI)
+      ctx.fillStyle='#7a9e7e'; ctx.fill()
+      ctx.font='bold 9px Nunito,sans-serif'; ctx.fillStyle='white'; ctx.textAlign='center'; ctx.textBaseline='middle'
+      ctx.fillText(bfsIdx,n.x+16,n.y-16)
+    }
+  })
+
+  if (!plants.length) {
+    ctx.font='14px Nunito,sans-serif'; ctx.fillStyle='#8a7b74'; ctx.textAlign='center'; ctx.textBaseline='middle'
+    ctx.fillText('add plants to see the companion graph!',canvas.width/2,canvas.height/2)
+  }
+}
+
+function renderBFSSelect() {
+  const sel = document.getElementById('bfsStart')
+  sel.innerHTML = plants.map(p => `<option value="${p.id}">${p.emoji} ${p.name}</option>`).join('')
+}
+
+function renderAdjList() {
+  const el = document.getElementById('adjList')
+  if (!plants.length) { el.innerHTML = '<span style="color:var(--muted)">no plants yet</span>'; return }
+  el.innerHTML = plants.map(p => {
+    const neighbors = graph.neighbors(p.id).map(id => {
+      const n = plants.find(x=>x.id===id)
+      return n ? `${n.emoji} ${n.name}` : ''
+    }).filter(Boolean)
+    return `<div style="margin-bottom:0.4rem"><span style="color:var(--sage-deep);font-weight:700">${p.emoji} ${p.name}</span> → [${neighbors.join(', ') || 'no companions yet'}]</div>`
+  }).join('')
+}
+
+function runBFS() {
+  const startId = parseInt(document.getElementById('bfsStart').value)
+  if (!startId) return
+  bfsHighlight = graph.bfs(startId)
+  renderGraph()
+  const names = bfsHighlight.map(id => { const p=plants.find(x=>x.id===id); return p?`${p.emoji} ${p.name}`:'' }).filter(Boolean)
+  const res = document.getElementById('bfsResult')
+  res.style.display = 'block'
+  res.textContent = `BFS order: ${names.join(' → ')}`
+}
+
+function resetBFS() {
+  bfsHighlight = []
+  renderGraph()
+  document.getElementById('bfsResult').style.display = 'none'
+}
+
+function updateSidebar() {
+  document.getElementById('sidebarTotal').textContent = plants.length
+  const due = plants.filter(p => p.daysUntilCare === 0).length
+  document.getElementById('sidebarDue').textContent = due
+  document.getElementById('urgentBadge').textContent = due
+  document.getElementById('urgentBadge').style.display = due > 0 ? '' : 'none'
+}
+
+//  UI HELPERS
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'))
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'))
+  document.getElementById('page-'+id).classList.add('active')
+  const navMap = {dashboard:0,myplants:1,heap:2,graph:3}
+  const items = document.querySelectorAll('.nav-item')
+  if (navMap[id] !== undefined) items[navMap[id]].classList.add('active')
+  const titles = {
+    dashboard: 'Good morning, garden friend',
+    myplants: 'My plants ',
+    heap: 'Heap visualizer ',
+    graph: 'Companion graph ',
+    docs: ''
+  }
+  document.getElementById('topbarTitle').innerHTML = titles[id] || ''
+  if (id === 'heap') renderHeap()
+  if (id === 'graph') { renderGraph(); renderBFSSelect(); renderAdjList() }
+}
+
+function openModal() {
+  document.getElementById('modalOverlay').classList.add('open')
+  document.getElementById('inputName').focus()
+  const box = document.getElementById('companionCheckboxes')
+  const group = document.getElementById('companionGroup')
+  if (plants.length > 0) {
+    group.style.display = ''
+    box.innerHTML = plants.map(p => `
+      <label style="display:flex;align-items:center;gap:0.3rem;background:var(--sage-pale);border:1.5px solid var(--sage-light);border-radius:8px;padding:0.3rem 0.6rem;cursor:pointer;font-size:0.82rem;font-weight:600">
+        <input type="checkbox" class="companion-check" value="${p.id}" style="accent-color:var(--sage)">
+        ${p.emoji} ${p.name}
+      </label>`).join('')
+  } else {
+    group.style.display = 'none'
+  }
+}
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open') }
+function closeModalOutside(e) { if (e.target===document.getElementById('modalOverlay')) closeModal() }
+
+function addPlant() {
+  const name = document.getElementById('inputName').value.trim()
+  const type = document.getElementById('inputType').value.trim() || 'Unknown species'
+  const loc  = document.getElementById('inputLocation').value.trim() || 'indoors'
+  const freq = parseInt(document.getElementById('inputFrequency').value) || 7
+  if (!name) { document.getElementById('inputName').focus(); return }
+  const companions = [...document.querySelectorAll('.companion-check:checked')].map(c => parseInt(c.value))
+  addPlantObject({name,type,location:loc,freq,emoji:selectedEmoji,companions})
+  closeModal()
+  document.getElementById('inputName').value = ''
+  document.getElementById('inputType').value = ''
+  document.getElementById('inputLocation').value = ''
+  document.getElementById('inputFrequency').value = '7'
+  showToast(`${name} added to your garden!`)
+  renderAll()
+  savePlants()
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast')
+  t.textContent = msg
+  t.classList.add('show')
+  setTimeout(() => t.classList.remove('show'), 2500)
+}
+
+function buildEmojiPicker() {
+  const p = document.getElementById('emojiPicker')
+  p.innerHTML = EMOJIS.map(e =>
+    `<div class="emoji-opt${e===selectedEmoji?' selected':''}" onclick="selectEmoji('${e}',this)">${e}</div>`
+  ).join('')
+}
+
+function selectEmoji(e, el) {
+  selectedEmoji = e
+  document.querySelectorAll('.emoji-opt').forEach(x => x.classList.remove('selected'))
+  el.classList.add('selected')
+}
+
+//  INIT
+function savePlants() {
+  localStorage.setItem('plantpal_plants', JSON.stringify(plants.map(p => ({
+    id: p.id,
+    name: p.name,
+    type: p.type,
+    location: p.location,
+    frequency: p.frequency,
+    emoji: p.emoji,
+    lastWatered: p.lastWatered
+  }))))
+  localStorage.setItem('plantpal_nextId', nextId)
+}
+
+function loadPlants() {
+  const saved = localStorage.getItem('plantpal_plants')
+  const savedId = localStorage.getItem('plantpal_nextId')
+  if (saved) {
+    nextId = parseInt(savedId) || 1
+    return JSON.parse(saved)
+  }
+  return null
+}
+
+window.addEventListener('load', () => {
+  buildEmojiPicker()
+  const saved = loadPlants()
+  if (saved && saved.length > 0) {
+    saved.forEach(p => {
+      const plant = { ...p, get daysUntilCare() { return computeDays(this.lastWatered, this.frequency) } }
+      plants.push(plant)
+      heap.insert(plant)
+      graph.addNode(plant.id)
+    })
+    plants.forEach(plant => {
+      COMPAT_RULES.forEach(([a, b]) => {
+        if (plant.emoji === a || plant.emoji === b) {
+          plants.filter(p => p.id !== plant.id && (p.emoji === a || p.emoji === b))
+                 .forEach(other => graph.addEdge(plant.id, other.id))
+        }
+      })
+      autoConnectByFrequency(plant)
+    })
+  } else {
+    PRESET_PLANTS.forEach(p => {
+      const plant = {
+        id: nextId++,
+        name: p.name,
+        type: p.type,
+        location: p.loc,
+        frequency: p.freq,
+        emoji: p.emoji,
+        lastWatered: Date.now() - (p.freq * 86400000 * (0.3 + Math.random()*0.9)),
+        get daysUntilCare() { return computeDays(this.lastWatered, this.frequency) }
+      }
+      plants.push(plant)
+      heap.insert(plant)
+      graph.addNode(plant.id)
+    })
+    plants.forEach(plant => {
+      COMPAT_RULES.forEach(([a, b]) => {
+        if (plant.emoji === a || plant.emoji === b) {
+          plants.filter(p => p.id !== plant.id && (p.emoji === a || p.emoji === b))
+                 .forEach(other => graph.addEdge(plant.id, other.id))
+        }
+      })
+      autoConnectByFrequency(plant)
+    })
+    savePlants()
+  }
+  setTimeout(() => renderAll(), 50)
+  window.addEventListener('resize', () => renderGraph())
+})
+</script>
+</body>
+</html>
